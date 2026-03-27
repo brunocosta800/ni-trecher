@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Meu Perfil - DBQP{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h2 style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"><i
+            class="fas fa-user-edit"></i> Editar Perfil</h2>
+
+    <form method="POST" action="{{ url_for('users.edit_profile') }}" enctype="multipart/form-data">
+
+        <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+            <div style="flex: 1;">
+                <div class="form-group">
+                    <label for="avatar">Enviar Imagem de Perfil (Opcional)</label>
+                    <input type="file" id="avatar" name="avatar" class="form-control"
+                        accept="image/png, image/jpeg, image/gif, image/webp">
+                </div>
+
+                <div class="form-group">
+                    <label for="github_url">URL do seu GitHub</label>
+                    <input type="text" id="github_url" name="github_url" class="form-control"
+                        value="{{ user.perfil.github_url if user.perfil and user.perfil.github_url and user.perfil.github_url != 'None' else '' }}"
+                        placeholder="Link do seu github">
+                </div>
+            </div>
+
+            <div
+                style="width: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Preview Avatar</p>
+                <img id="avatar-preview"
+                    src="{{ user.perfil.avatar_url if user.perfil and user.perfil.avatar_url else url_for('static', filename='default_avatar.png') }}"
+                    style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);"
+                    alt="Preview">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="biografia">Biografia / Sobre você</label>
+            <textarea id="biografia" name="biografia" class="form-control" rows="4"
+                placeholder="Escreva algo sobre você aqui">{{ user.perfil.biografia if user.perfil and user.perfil.biografia and user.perfil.biografia != 'None' else '' }}</textarea>
+        </div>
+
+        <h3 style="margin-top: 3rem; margin-bottom: 1.5rem; color: var(--secondary);">Motor de Conexões (Grafo)</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+            Preencha os campos abaixo separados por vírgula. Nós usaremos essas tags para conectar você a outras pessoas
+            no grafo!
+        </p>
+
+        <div class="form-group">
+            <label for="habilidades"><i class="fas fa-laptop-code"></i> Habilidades / Tecnologias (Ex: Python, React,
+                Docker)</label>
+            <input type="text" id="habilidades" name="habilidades" class="form-control"
+                value="{{ user.habilidades|map(attribute='nome')|join(', ') }}">
+        </div>
+
+        <div class="form-group">
+            <label for="interesses"><i class="fas fa-heart"></i> Áreas de Interesse (Ex: Inteligência Artificial, Games,
+                DevOps)</label>
+            <input type="text" id="interesses" name="interesses" class="form-control"
+                value="{{ user.interesses|map(attribute='nome')|join(', ') }}">
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1.1rem;">Salvar
+                Alterações</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const avatarInput = document.getElementById('avatar');
+    const avatarPreview = document.getElementById('avatar-preview');
+
+    avatarInput.addEventListener('change', function (event) {
+        if (event.target.files && event.target.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                avatarPreview.src = e.target.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    });
+
+    avatarPreview.addEventListener('error', function () {
+        this.src = "/static/default_avatar.png";
+    });
+</script>
+{% endblock %}

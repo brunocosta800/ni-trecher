@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Feed - DBQP{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 3fr; gap: 2rem;">
+    <!-- Sidebar / Current User Info -->
+    <div>
+        <div class="card" style="position: sticky; top: 100px; text-align: center;">
+            <img src="{{ current_user.perfil.avatar_url if current_user.perfil else url_for('static', filename='default_avatar.png') }}"
+                style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 1rem; object-fit: cover;"
+                alt="Avatar">
+            <h3>{{ current_user.nome }}</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                <i class="fas fa-envelope"></i> {{ current_user.email }}
+            </p>
+            {% if current_user.perfil and current_user.perfil.github_url %}
+            <p style="margin-top: 0.5rem;">
+                <a href="{{ current_user.perfil.github_url }}" target="_blank"
+                    style="color: var(--text-main); text-decoration: none;">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </p>
+            {% endif %}
+
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h4 style="margin-bottom: 0.5rem; text-align: left; font-size: 0.9rem; color: var(--text-muted);">Skills
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    {% for h in current_user.habilidades %}
+                    <span
+                        style="background: rgba(71, 209, 90, 0.2); color: #47D15A; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                        {{ h.nome }}
+                    </span>
+                    {% else %}
+                    <span style="color: var(--text-muted); font-size: 0.8rem;">Nenhuma habilidade listada</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed / Posts -->
+    <div>
+        <div class="card" style="margin-bottom: 2rem;">
+            <form method="POST" action="{{ url_for('posts.create_post') }}">
+                <textarea name="conteudo" class="form-control" rows="3" placeholder="O que você está construindo hoje?"
+                    required style="resize: none;"></textarea>
+                <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Publicar</button>
+                </div>
+            </form>
+        </div>
+
+        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Feed
+            Global</h3>
+
+        {% for post in posts %}
+        <div class="card" style="margin-bottom: 1.5rem; transition: transform 0.2s; cursor: default;">
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <img src="{{ post.autor.perfil.avatar_url if post.autor.perfil and post.autor.perfil.avatar_url else url_for('static', filename='default_avatar.png') }}"
+                    style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--secondary);"
+                    alt="Author Avatar">
+
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">{{ post.autor.nome
+                            }}</span>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">{{
+                            post.data_criacao.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </div>
+
+                    <p style="white-space: pre-wrap; color: var(--text-main); font-size: 0.95rem; line-height: 1.5;">{{
+                        post.conteudo }}</p>
+
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        {% for hab in post.autor.habilidades[:3] %}
+                        <span
+                            style="font-size: 0.75rem; color: #9ca3af; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 4px;">{{
+                            hab.nome }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; color: var(--text-muted);">
+            <i class="fas fa-ghost" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>O feed está muito silencioso. Seja o primeiro a postar!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

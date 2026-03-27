@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Comunidades - DBQP{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <!-- Sidebar: Criar Comunidade / Minhas Comunidades -->
+    <div>
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3>Criar Fórum</h3>
+            <form method="POST" action="{{ url_for('communities.create_community') }}">
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label for="nome">Nome do Tópico</label>
+                    <input type="text" id="nome" name="nome" class="form-control" required
+                        placeholder="Ex: React Developers">
+                </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" name="descricao" class="form-control" rows="2"
+                        placeholder="Qual o intuito deste fórum?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="tags">Tags / Temas (separados por vírgula)</label>
+                    <input type="text" id="tags" name="tags" class="form-control"
+                        placeholder="Ex: React, JavaScript, Frontend">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Criar Comunidade</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                Minhas Comunidades</h3>
+            {% if minhas_comunidades %}
+            <ul style="list-style: none; padding: 0;">
+                {% for com in minhas_comunidades %}
+                <li style="margin-bottom: 0.8rem;">
+                    <a href="{{ url_for('communities.view_community', id=com.id) }}"
+                        style="color: var(--text-main); text-decoration: none; font-weight: 500; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-users" style="color: var(--primary);"></i> {{ com.nome }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Você não se juntou a nenhuma comunidade ainda.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content: Recomendadas + Todas as Comunidades -->
+    <div>
+        <!-- Seção 1: Recomendadas para Você -->
+        <div style="margin-bottom: 3rem;">
+            <h2 style="margin-bottom: 0.5rem;"><i class="fas fa-magic" style="color: var(--primary);"></i> Recomendadas
+                para Você</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Comunidades que combinam com
+                suas habilidades e interesses</p>
+
+            {% if recomendadas %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                {% for com in recomendadas %}
+                <div class="card"
+                    style="display: flex; flex-direction: column; justify-content: space-between; border-left: 3px solid var(--primary);">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem;">
+                            <a href="{{ url_for('communities.view_community', id=com.id) }}"
+                                style="color: var(--text-main); text-decoration: none;">{{ com.nome }}</a>
+                        </h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">{{
+                            com.descricao[:80] + '...' if com.descricao and com.descricao|length > 80 else com.descricao
+                            }}</p>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;">
+                            {% for h in com.habilidades %}
+                            {% if h.nome in minhas_habilidades %}
+                            <span style="font-size: 0.75rem; background: rgba(71, 209, 90, 0.25); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--primary); font-weight: 600;">⭐ {{ h.nome }}</span>
+                            {% else %}
+                            <span style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--border-color);">{{ h.nome }}</span>
+                            {% endif %}
+                            {% endfor %}
+                            {% for i in com.interesses %}
+                            {% if i.nome in meus_interesses %}
+                            <span style="font-size: 0.75rem; background: rgba(71, 209, 90, 0.25); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--primary); font-weight: 600;">⭐ {{ i.nome }}</span>
+                            {% else %}
+                            <span style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--border-color);">{{ i.nome }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('communities.join_community', id=com.id) }}">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-star"></i>
+                            Entrar</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card" style="text-align: center; color: var(--text-muted);">
+                <i class="fas fa-ghost" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Nenhuma recomendação no momento. Adicione mais habilidades e interesses no seu perfil!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Divisor -->
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin-bottom: 2rem;">
+
+        <!-- Seção 2: Todas as Comunidades Disponíveis -->
+        <div>
+            <h2 style="margin-bottom: 0.5rem;"><i class="fas fa-globe" style="color: var(--text-muted);"></i> Todas as
+                Comunidades</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Explore todas as comunidades
+                disponíveis na plataforma.</p>
+
+            {% if outras %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                {% for com in outras %}
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem;">
+                            <a href="{{ url_for('communities.view_community', id=com.id) }}"
+                                style="color: var(--text-main); text-decoration: none;">{{ com.nome }}</a>
+                        </h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">{{
+                            com.descricao[:80] + '...' if com.descricao and com.descricao|length > 80 else com.descricao
+                            }}</p>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;">
+                            {% for h in com.habilidades %}
+                            {% if h.nome in minhas_habilidades %}
+                            <span style="font-size: 0.75rem; background: rgba(71, 209, 90, 0.25); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--primary); font-weight: 600;">⭐ {{ h.nome }}</span>
+                            {% else %}
+                            <span style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--border-color);">{{ h.nome }}</span>
+                            {% endif %}
+                            {% endfor %}
+                            {% for i in com.interesses %}
+                            {% if i.nome in meus_interesses %}
+                            <span style="font-size: 0.75rem; background: rgba(71, 209, 90, 0.25); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--primary); font-weight: 600;">⭐ {{ i.nome }}</span>
+                            {% else %}
+                            <span style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid var(--border-color);">{{ i.nome }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('communities.join_community', id=com.id) }}">
+                        <button type="submit" class="btn btn-outline" style="width: 100%;"><i
+                                class="fas fa-sign-in-alt"></i> Entrar</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card" style="text-align: center; color: var(--text-muted);">
+                <i class="fas fa-check-circle" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Não há outras comunidades disponíveis no momento. Crie a sua própria!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

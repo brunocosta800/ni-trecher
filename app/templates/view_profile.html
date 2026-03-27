@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de {{ user.nome }} - DBQP{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <div style="margin-bottom: 2rem;">
+        <img src="{{ user.perfil.avatar_url if user.perfil and user.perfil.avatar_url else url_for('static', filename='default_avatar.png') }}"
+            style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); margin-bottom: 1rem;"
+            alt="{{ user.nome }}">
+
+        <h2>{{ user.nome }}</h2>
+        <p style="color: var(--text-muted); font-size: 1.1rem;"><i class="fas fa-envelope"></i> {{ user.email }}</p>
+
+        {% if session.get('user_id') == user.id %}
+        <p style="margin-top: 1rem;">
+            <a href="{{ url_for('users.edit_profile') }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar Perfil
+            </a>
+        </p>
+        {% else %}
+        <p style="margin-top: 1rem;">
+            {% if is_following %}
+            <a href="{{ url_for('users.follow', user_id=user.id) }}" class="btn btn-outline" style="color: #ff4d4d; border-color: #ff4d4d;">
+                <i class="fas fa-user-minus"></i> Deixar de Seguir
+            </a>
+            {% else %}
+            <a href="{{ url_for('users.follow', user_id=user.id) }}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Seguir
+            </a>
+            {% endif %}
+        </p>
+        {% endif %}
+
+
+
+        {% if user.perfil and user.perfil.github_url %}
+        <p style="margin-top: 1rem;">
+            <a href="{{ user.perfil.github_url }}" target="_blank" class="btn btn-outline"
+                style="border-color: var(--primary); color: var(--primary);">
+                <i class="fab fa-github"></i> Visitar GitHub
+            </a>
+        </p>
+        {% endif %}
+    </div>
+
+    <div style="background: #101411; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; text-align: left;">
+        <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-quote-left"></i> Sobre</h4>
+        <p style="color: var(--text-main); line-height: 1.6;">
+            {% if user.perfil and user.perfil.biografia and user.perfil.biografia != 'None' %}
+            {{ user.perfil.biografia }}
+            {% else %}
+            <span style="color: var(--text-muted); font-style: italic;">Nada aqui por enquanto</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
+        <div>
+            <h4 style="color: var(--secondary); margin-bottom: 1rem;"><i class="fas fa-laptop-code"></i> Habilidades
+            </h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for h in user.habilidades %}
+                <span
+                    style="background: rgba(71, 209, 90, 0.2); color: #47D15A; padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.9rem;">
+                    {{ h.nome }}
+                </span>
+                {% else %}
+                <span style="color: var(--text-muted);">Perfil sem habilidades listadas.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            <h4 style="color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-heart"></i> Interesses</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for i in user.interesses %}
+                <span
+                    style="background: rgba(62, 79, 63, 0.5); color: #86efac; padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.9rem;">
+                    {{ i.nome }}
+                </span>
+                {% else %}
+                <span style="color: var(--text-muted);">Nenhum interesse mapeado.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 3rem;">
+        <a href="{{ url_for('users.network') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Voltar ao
+            Grafo</a>
+    </div>
+</div>
+{% endblock %}

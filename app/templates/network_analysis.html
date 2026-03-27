@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Análise de Rede - DBQP{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="color: var(--primary); margin-bottom: 2rem;"><i class="fas fa-chart-network"></i> Análise de Inteligência da Rede</h1>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Sugestões de Amigos (Amigos de Amigos) -->
+        <div class="card">
+            <h3 style="color: var(--secondary); margin-bottom: 1.5rem;"><i class="fas fa-users"></i> Sugestões de Conexão</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Baseado em amigos de seus amigos (BFS Nível 2)</p>
+            <ul style="list-style: none; padding: 0;">
+                {% for suggestion in fof_suggestions %}
+                <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 0.5rem;">
+                    <span>{{ suggestion.nome }}</span>
+                    <a href="{{ url_for('users.view_profile', user_id=suggestion.id) }}" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Ver Perfil</a>
+                </li>
+                {% else %}
+                <li style="color: var(--text-muted);">Nenhuma sugestão no momento. Tente seguir mais pessoas!</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Comunidades (DFS) -->
+        <div class="card">
+            <h3 style="color: var(--primary); margin-bottom: 1.5rem;"><i class="fas fa-project-diagram"></i> Sua Comunidade</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Membros no seu componente conectado (DFS)</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for member in community_members %}
+                <span style="background: rgba(71, 209, 90, 0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+                    {{ member.nome }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quem pode ajudar (BFS 3 Graus) -->
+    <div class="card" style="margin-top: 2rem;">
+        <h3 style="color: var(--secondary); margin-bottom: 1.5rem;"><i class="fas fa-hands-helping"></i> Quem pode me ajudar?</h3>
+        <form method="GET" action="{{ url_for('users.network_analysis') }}" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <input type="text" name="skill" placeholder="Habilidade (ex: Python, Grafos)" value="{{ skill_query }}" 
+                   style="flex: 1; padding: 0.8rem; border-radius: 8px; background: #0a0e0b; border: 1px solid #1a241c; color: white;">
+            <button type="submit" class="btn btn-primary">Buscar na Rede</button>
+        </form>
+
+        {% if helpers %}
+        <ul style="list-style: none; padding: 0;">
+            {% for helper, dist in helpers %}
+            <li style="padding: 1rem; background: rgba(255,255,255,0.03); border-left: 4px solid var(--secondary); border-radius: 0 8px 8px 0; margin-bottom: 0.8rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <strong>{{ helper.nome }}</strong>
+                    <span style="color: var(--text-muted);">Distância: {{ dist }} {{ 'grau' if dist == 1 else 'graus' }}</span>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem;">
+                    Habilidades: {% for h in helper.habilidades %}<span style="color: var(--secondary);">{{ h.nome }}</span>{{ ", " if not loop.last }}{% endfor %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% elif skill_query %}
+        <p style="color: var(--text-muted);">Ninguém encontrado com essa habilidade em até 3 graus de distância.</p>
+        {% endif %}
+    </div>
+
+    <!-- Tabela de Distâncias (Dijkstra vs BFS) -->
+    <div class="card" style="margin-top: 2rem;">
+        <h3 style="color: #47D15A; margin-bottom: 1.5rem;"><i class="fas fa-route"></i> Otimização de Caminhos</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Comparação entre menor número de passos (BFS) e menor distância por interesses (Dijkstra)</p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #1a241c;">
+                        <th style="padding: 1rem;">Usuário</th>
+                        <th style="padding: 1rem;">Graus (BFS)</th>
+                        <th style="padding: 1rem;">Interesse (Dijkstra)</th>
+                        <th style="padding: 1rem;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in all_users if u.id != current_user.id %}
+                    {% set dist_bfs = bfs_distance(graph, current_user.id, u.id) %}
+                    {% set dist_dijkstra = dijkstra_interest_distance(all_users, current_user.id, u.id) %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem;">{{ u.nome }}</td>
+                        <td style="padding: 1rem;">{{ dist_bfs if dist_bfs != float('inf') else '∞' }}</td>
+                        <td style="padding: 1rem;">{{ dist_dijkstra if dist_dijkstra != float('inf') else '∞' }}</td>
+                        <td style="padding: 1rem;">
+                            <a href="{{ url_for('users.view_profile', user_id=u.id) }}" style="color: var(--primary); text-decoration: none;">Perfil</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

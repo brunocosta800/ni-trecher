@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h1>Nexus Graph: Conecte-se pelo Código.</h1>
+    <p>A rede social inteligente para desenvolvedores, onde conexões reais nascem da paixão por tecnologia.</p>
+
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="margin-right: 1rem;">Criar Conta</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Entrar</a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 4rem;">
+    <div class="card" style="text-align: center;">
+        <i class="fas fa-project-diagram" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+        <h3>Conexões Inteligentes</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Nosso sistema mapeia suas habilidades e interesses criando um grafo visual de conexões relevantes.</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <i class="fas fa-code-branch" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+        <h3>Evolua seu Stack</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Descubra tecnologias emergentes e desenvolvedores que compartilham a mesma paixão que você.</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <i class="fas fa-laptop-code" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+        <h3>Compartilhe Conhecimento</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Poste no feed integrado e interaja com sua rede para aprender e ensinar simultaneamente.</p>
+    </div>
+</div>
+{% endblock %}

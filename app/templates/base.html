@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nexus - Rede de Programadores{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='dbqp_static_logo.jpg') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('posts.index') if session.get('user_id') else '/' }}" class="logo">
+                <img src="{{ url_for('static', filename='dbqp_static_logo.jpg') }}" alt="Nexus Logo" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+                <span class="logo-text">Nexus<span class="highlight"> Graph</span></span>
+            </a>
+
+            <div class="nav-links">
+                {% if session.get('user_id') %}
+                <a href="{{ url_for('posts.index') }}" class="nav-item">Linha do Tempo</a>
+                <a href="{{ url_for('users.network') }}" class="nav-item">Mapa de Conexões</a>
+                <a href="{{ url_for('users.network_analysis') }}" class="nav-item">Insights de Grafos</a>
+                <a href="{{ url_for('communities.list_communities') }}" class="nav-item">Tribos</a>
+
+                <a href="{{ url_for('users.profile') }}" class="nav-item">Meu Perfil</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Sair</a>
+
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="nav-item">Entrar</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Registrar</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

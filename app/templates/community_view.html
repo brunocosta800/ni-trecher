@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ comunidade.nome }} - DBQP{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(30, 41, 32, 0.9), rgba(18, 26, 20, 0.9));">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h1 style="color: var(--primary); margin-bottom: 0.5rem;">{{ comunidade.nome }}</h1>
+            <p style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 1rem;">{{ comunidade.descricao }}</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                {% for h in comunidade.habilidades %}
+                    <span style="font-size: 0.85rem; background: rgba(71, 209, 90, 0.2); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 12px;">{{ h.nome }}</span>
+                {% endfor %}
+                {% for i in comunidade.interesses %}
+                    <span style="font-size: 0.85rem; background: rgba(62, 79, 63, 0.5); color: var(--text-main); padding: 0.2rem 0.6rem; border-radius: 12px;">{{ i.nome }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div>
+            <form method="POST" action="{{ url_for('communities.join_community', id=comunidade.id) }}">
+                {% if is_member %}
+                    <button type="submit" class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Sair da Comunidade</button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Participar Agora</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+        <span style="color: var(--text-muted); font-size: 0.9rem;"><i class="fas fa-users"></i> {{ comunidade.membros|length }} Membros • Fórum aberto desde {{ comunidade.data_criacao.strftime('%d/%m/%Y') }}</span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 3fr 1fr; gap: 2rem;">
+    <!-- Fórum Feed -->
+    <div>
+        {% if is_member %}
+        <div class="card" style="margin-bottom: 2rem;">
+            <form method="POST" action="{{ url_for('communities.post_community', id=comunidade.id) }}">
+                <textarea name="conteudo" class="form-control" rows="3" placeholder="Inicie uma discussão neste fórum..." required style="resize: none;"></textarea>
+                <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Postar</button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; margin-bottom: 2rem; background: rgba(0,0,0,0.2);">
+            <p style="color: var(--text-muted);">Você precisa participar da comunidade para postar e interagir.</p>
+        </div>
+        {% endif %}
+
+        <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Discussões</h3>
+        
+        {% for post in posts %}
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <img src="{{ post.autor.perfil.avatar_url if post.autor.perfil and post.autor.perfil.avatar_url else url_for('static', filename='default_avatar.png') }}" 
+                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);" 
+                     alt="Author">
+                
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <a href="{{ url_for('users.view_profile', user_id=post.autor.id) }}" style="font-weight: 600; font-size: 1rem; color: var(--text-main); text-decoration: none;">{{ post.autor.nome }}</a>
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">{{ post.data_criacao.strftime('%d/%m %H:%M') }}</span>
+                    </div>
+                    
+                    <p style="white-space: pre-wrap; color: var(--text-main); font-size: 0.95rem; line-height: 1.5;">{{ post.conteudo }}</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; color: var(--text-muted);">
+            <i class="far fa-comments" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>Nenhuma discussão iniciada neste tópico ainda.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sidebar: Membros -->
+    <div>
+        <div class="card" style="position: sticky; top: 100px;">
+            <h4 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Membros ({{ comunidade.membros|length }})</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                {% for membro in comunidade.membros %}
+                <a href="{{ url_for('users.view_profile', user_id=membro.id) }}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-main);">
+                    <img src="{{ membro.perfil.avatar_url if membro.perfil and membro.perfil.avatar_url else url_for('static', filename='default_avatar.png') }}" 
+                         style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                    <span style="font-size: 0.9rem; {{ 'font-weight: 700; color: var(--primary);' if membro.id == comunidade.criador_id else '' }}">
+                        {{ membro.nome }} {{ '(Criador)' if membro.id == comunidade.criador_id else '' }}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
