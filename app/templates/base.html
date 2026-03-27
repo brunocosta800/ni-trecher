@@ -28,6 +28,13 @@
                 <a href="{{ url_for('communities.list_communities') }}" class="nav-item">Tribos</a>
 
                 <a href="{{ url_for('users.profile') }}" class="nav-item">Meu Perfil</a>
+                <a href="{{ url_for('users.friend_requests') }}" class="nav-item">
+                    Solicitações
+                    {% set pending_count = Registro.query.get(session['user_id']).solicitacoes_recebidas.filter_by(status='pendente').count() %}
+                    {% if pending_count > 0 %}
+                    <span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">{{ pending_count }}</span>
+                    {% endif %}
+                </a>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Sair</a>
 
                 {% else %}

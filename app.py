@@ -46,6 +46,11 @@ app.register_blueprint(posts_bp, url_prefix='/posts')
 app.register_blueprint(users_bp, url_prefix='/users')
 app.register_blueprint(communities_bp, url_prefix='/communities')
 
+@app.context_processor
+def inject_registro():
+    from app.models.user import Registro
+    return dict(Registro=Registro)
+
 @app.route('/')
 def index():
     return render_template('index.html')

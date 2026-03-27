@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitações de Amizade - Nexus{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="margin-bottom: 2rem; color: var(--primary);">
+        <i class="fas fa-user-friends"></i> Solicitações de Amizade
+    </h2>
+
+    <div class="card">
+        {% if pendentes %}
+        <div style="display: grid; gap: 1.5rem;">
+            {% for req in pendentes %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <img src="{{ req.remetente.perfil.avatar_url if req.remetente.perfil and req.remetente.perfil.avatar_url else url_for('static', filename='default_avatar.png') }}" 
+                         alt="{{ req.remetente.nome }}" 
+                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                    <div>
+                        <h4 style="margin: 0;">{{ req.remetente.nome }}</h4>
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">{{ req.remetente.email }}</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{{ url_for('users.accept_request', request_id=req.id) }}" class="btn btn-primary" style="padding: 0.4rem 1rem;">
+                        <i class="fas fa-check"></i> Aceitar
+                    </a>
+                    <a href="{{ url_for('users.reject_request', request_id=req.id) }}" class="btn btn-outline" style="padding: 0.4rem 1rem; color: #ff4d4d; border-color: #ff4d4d;">
+                        <i class="fas fa-times"></i> Recusar
+                    </a>
+                    <a href="{{ url_for('users.view_profile', user_id=req.remetente.id) }}" class="btn btn-outline" style="padding: 0.4rem 1rem;">
+                        Ver Perfil
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem 0;">
+            <i class="fas fa-inbox" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block;"></i>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Nenhuma solicitação pendente no momento.</p>
+            <a href="{{ url_for('users.network') }}" class="btn btn-primary" style="margin-top: 1.5rem;">Explorar a Rede</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('users.profile') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Voltar ao Meu Perfil
+        </a>
+    </div>
+</div>
+{% endblock %}

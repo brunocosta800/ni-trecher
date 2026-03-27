@@ -19,7 +19,7 @@
             </a>
         </p>
         {% else %}
-        <p style="margin-top: 1rem;">
+        <p style="margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
             {% if is_following %}
             <a href="{{ url_for('users.follow', user_id=user.id) }}" class="btn btn-outline" style="color: #ff4d4d; border-color: #ff4d4d;">
                 <i class="fas fa-user-minus"></i> Deixar de Seguir
@@ -27,6 +27,20 @@
             {% else %}
             <a href="{{ url_for('users.follow', user_id=user.id) }}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Seguir
+            </a>
+            {% endif %}
+
+            {% if is_friend %}
+            <span class="btn btn-outline" style="color: gold; border-color: gold; cursor: default;">
+                <i class="fas fa-star"></i> Amigos
+            </span>
+            {% elif has_pending_request %}
+            <span class="btn btn-outline" style="color: var(--text-muted); border-color: var(--text-muted); cursor: default;">
+                <i class="fas fa-clock"></i> Solicitação Enviada
+            </span>
+            {% else %}
+            <a href="{{ url_for('users.send_request', user_id=user.id) }}" class="btn btn-secondary">
+                <i class="fas fa-user-friends"></i> Adicionar Amigo
             </a>
             {% endif %}
         </p>

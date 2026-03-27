@@ -61,11 +61,18 @@ def dijkstra_interest_distance(users, start_node_id, target_node_id):
     for u in users:
         adj[u.id] = []
         u_interests = set(i.nome for i in u.interesses)
+        u_skills = set(h.nome for h in u.habilidades)
+        
         for amigo in u.amigos:
             amigo_interests = set(i.nome for i in amigo.interesses)
-            common = len(u_interests & amigo_interests)
-            # Peso: quanto mais interesses comum, menor o peso (mínimo 1)
-            weight = max(1, 10 - common) 
+            amigo_skills = set(h.nome for h in amigo.habilidades)
+            
+            common_interests = len(u_interests & amigo_interests)
+            common_skills = len(u_skills & amigo_skills)
+            
+            # Peso inicial é 10 (se apenas se seguem ou são amigos).
+            # Cada interesse ou habilidade em comum diminui 1 no peso.
+            weight = max(1, 10 - (common_interests + common_skills))
             adj[u.id].append((amigo.id, weight))
 
     distances = {u.id: float('inf') for u in users}

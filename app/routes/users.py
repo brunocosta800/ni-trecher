@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, current_app
 from werkzeug.utils import secure_filename
 from app.models import db
-from app.models.user import Registro, Perfil
+from app.models.user import Registro, Perfil, SolicitacaoAmizade
 from app.models.preferences import Habilidade, Interesse
 
 users_bp = Blueprint('users', __name__)
@@ -94,9 +94,17 @@ def view_profile(user_id):
     
     user = Registro.query.get_or_404(user_id)
     current_user = Registro.query.get(session['user_id'])
-    is_following = target_user in current_user.amigos if (target_user := user) else False
+    is_following = user in current_user.amigos
+    is_friend = current_user in user.amigos and is_following
     
-    return render_template('view_profile.html', user=user, is_following=is_following, Registro=Registro)
+    # Verifica se há solicitação pendente enviada pelo usuário logado para este perfil
+    has_pending_request = SolicitacaoAmizade.query.filter_by(
+        remetente_id=current_user.id, 
+        destinatario_id=user_id, 
+        status='pendente'
+    ).first() is not None
+    
+    return render_template('view_profile.html', user=user, is_following=is_following, is_friend=is_friend, has_pending_request=has_pending_request, Registro=Registro)
 
 
 @users_bp.route('/follow/<int:user_id>')
@@ -115,6 +123,77 @@ def follow(user_id):
         flash(f'Você deixou de seguir {target_user.nome}.', 'info')
         
     return redirect(url_for('users.view_profile', user_id=user_id))
+
+
+@users_bp.route('/friend_request/send/<int:user_id>')
+@login_required
+def send_request(user_id):
+    current_user_id = session['user_id']
+    if current_user_id == user_id:
+        flash("Você não pode enviar solicitação para si mesmo.", "warning")
+        return redirect(url_for('users.profile'))
+    
+    # Verifica se já existe solicitação pendente ou se já são amigos mútuos
+    existing_request = SolicitacaoAmizade.query.filter(
+        ((SolicitacaoAmizade.remetente_id == current_user_id) & (SolicitacaoAmizade.destinatario_id == user_id)) |
+        ((SolicitacaoAmizade.remetente_id == user_id) & (SolicitacaoAmizade.destinatario_id == current_user_id))
+    ).filter(SolicitacaoAmizade.status == 'pendente').first()
+    
+    if existing_request:
+        flash("Já existe uma solicitação pendente entre vocês.", "info")
+        return redirect(url_for('users.view_profile', user_id=user_id))
+    
+    new_request = SolicitacaoAmizade(remetente_id=current_user_id, destinatario_id=user_id)
+    db.session.add(new_request)
+    db.session.commit()
+    flash("Solicitação de amizade enviada!", "success")
+    return redirect(url_for('users.view_profile', user_id=user_id))
+
+
+@users_bp.route('/friend_request/accept/<int:request_id>')
+@login_required
+def accept_request(request_id):
+    req = SolicitacaoAmizade.query.get_or_404(request_id)
+    if req.destinatario_id != session['user_id']:
+        flash("Permissão negada.", "danger")
+        return redirect(url_for('users.profile'))
+    
+    req.status = 'aceita'
+    
+    # Estabelece a amizade mútua (ambos se seguem)
+    remetente = Registro.query.get(req.remetente_id)
+    destinatario = Registro.query.get(req.destinatario_id)
+    
+    if destinatario not in remetente.amigos:
+        remetente.amigos.append(destinatario)
+    if remetente not in destinatario.amigos:
+        destinatario.amigos.append(remetente)
+        
+    db.session.commit()
+    flash(f"Agora você e {remetente.nome} são amigos!", "success")
+    return redirect(url_for('users.friend_requests'))
+
+
+@users_bp.route('/friend_request/reject/<int:request_id>')
+@login_required
+def reject_request(request_id):
+    req = SolicitacaoAmizade.query.get_or_404(request_id)
+    if req.destinatario_id != session['user_id']:
+        flash("Permissão negada.", "danger")
+        return redirect(url_for('users.profile'))
+    
+    req.status = 'recusada'
+    db.session.commit()
+    flash("Solicitação recusada.", "info")
+    return redirect(url_for('users.friend_requests'))
+
+
+@users_bp.route('/friend_requests')
+@login_required
+def friend_requests():
+    user = Registro.query.get(session['user_id'])
+    pendentes = user.solicitacoes_recebidas.filter_by(status='pendente').all()
+    return render_template('friend_requests.html', pendentes=pendentes)
 
 @users_bp.route('/network/analysis')
 @login_required
